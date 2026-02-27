@@ -32,6 +32,9 @@ $routes->group('admin', ['filter' => 'role:admin'], static function ($routes) {
     // View-Only Routes (Products, Orders)
     $routes->get('products', 'AdminController::products');
     $routes->get('orders', 'AdminController::orders');
+
+    $routes->post('admin/categories/update/(:num)','AdminController::updateCategory/$1');
+    $routes->post('admin/products/toggle-status/(:num)','AdminController::toggleProductStatus/$1');
 });
 // Vendor Protected Routes
 $routes->group('vendor', ['filter' => 'role:vendor'], static function ($routes) {
@@ -52,6 +55,10 @@ $routes->group('vendor', ['filter' => 'role:vendor'], static function ($routes) 
     
     // Orders
     $routes->get('orders', 'VendorController::orders');
+
+$routes->post('vendor/products/toggle-status/(:num)','VendorController::toggleProductStatus/$1');
+$routes->post('vendor/orders/update-status/(:num)','VendorController::updateOrderStatus/$1');
+
 });
 // Public Shop & AJAX Routes
 $routes->get('/', 'ShopController::index');
@@ -69,3 +76,4 @@ $routes->group('checkout', ['filter' => 'role:customer'], static function ($rout
     $routes->post('process', 'Checkout::processCheckout'); // We wrote this in step 1!
     $routes->get('success', 'ShopController::success');
 });
+
