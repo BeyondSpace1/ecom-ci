@@ -98,37 +98,135 @@ class VendorController extends BaseController
         return view('vendor/products', $data);
     }
 
+    // public function addProduct()
+    // {
+        
+    //     $productModel = new \App\Models\ProductModel();
+        
+    //     // 1. Grab the uploaded file
+    //     $file = $this->request->getFile('image');
+    //     $imageName = ''; // Default empty
+
+    //     // 2. Check if a file was uploaded and is valid
+    //     if ($file && $file->isValid() && !$file->hasMoved()) {
+    //         // Generate a random secure name
+    //         $imageName = $file->getRandomName();
+    //         // Move it to public/uploads/products/
+    //         $file->move(FCPATH . 'uploads/products', $imageName);
+    //     }
+
+    //     // 3. Save to database
+    //     $data = [
+    //         'vendor_id'   => session()->get('user_id'),
+    //         'category_id' => $this->request->getPost('category_id'),
+    //         'name'        => $this->request->getPost('name'),
+    //         'price'       => $this->request->getPost('price'),
+    //         'offer_price' => $this->request->getPost('offer_price'),
+    //         'stock'       => $this->request->getPost('stock'),
+    //         'image'       => $imageName, // Save the new file name!
+    //         'status'      => 1
+    //     ];
+
+    //     $productModel->insert($data);
+    //     return redirect()->to('/vendor/products')->with('success', 'Product added!');
+    
+    // }
     public function addProduct()
     {
-        if ($this->request->getMethod() === 'POST') {
-            $productModel = new ProductModel();
-
-            $data = [
-                'vendor_id'   => $this->vendorId,
-                'category_id' => $this->request->getPost('category_id'),
-                'name'        => $this->request->getPost('name'),
-                'price'       => $this->request->getPost('price'),
-                'offer_price' => $this->request->getPost('offer_price') ?: null,
-                'stock'       => $this->request->getPost('stock'),
-                'status'      => 1
-            ];
-
-            $file = $this->request->getFile('image');
-            if ($file && $file->isValid() && !$file->hasMoved()) {
-                $newName = $file->getRandomName();
-                $file->move(FCPATH . 'uploads/products', $newName);
-                $data['image'] = $newName;
-            }
-
-            $productModel->insert($data);
-            return redirect()->to('/vendor/products')->with('success', 'Product added successfully.');
-        }
-
-        $categoryModel = new CategoryModel();
+        $categoryModel = new \App\Models\CategoryModel();
+        
+        // Fetch only ACTIVE categories for the dropdown
         $data['categories'] = $categoryModel->where('status', 1)->findAll();
+        
         return view('vendor/add_product', $data);
     }
 
+    // public function storeProduct() 
+    // {
+    //     // 1. Strict Validation: Stop the process if the category is missing
+    //     if (!$this->validate([
+    //         'category_id' => 'required',
+    //         'name'        => 'required',
+    //         'price'       => 'required|numeric'
+    //     ])) {
+    //         return redirect()->back()->withInput()->with('error', 'Please ensure all required fields, including the Category, are filled out.');
+    //     }
+
+    //     $productModel = new \App\Models\ProductModel();
+        
+    //     // 2. Handle the Image Upload Securely
+    //     $file = $this->request->getFile('image');
+    //     $imageName = '';
+        
+    //     if ($file && $file->isValid() && !$file->hasMoved()) {
+    //         $imageName = $file->getRandomName(); // Secure rename
+    //         $file->move(FCPATH . 'uploads/products', $imageName); // Move to public folder
+    //     }
+
+    //     // 3. Save to Database
+    //     $data = [
+    //         'vendor_id'   => session()->get('user_id'),
+    //         'category_id' => $this->request->getPost('category_id'),
+    //         'name'        => $this->request->getPost('name'),
+    //         'price'       => $this->request->getPost('price'),
+    //         'offer_price' => $this->request->getPost('offer_price'),
+    //         'stock'       => $this->request->getPost('stock'),
+    //         'image'       => $imageName,
+    //         'status'      => 1
+    //     ];
+
+    //     $productModel->insert($data);
+    //     return redirect()->to('/vendor/products')->with('success', 'Product published successfully!');
+    // }
+
+    public function storeProduct()
+    {
+        // 1. Basic Form Validation
+        if (!$this->validate([
+            'category_id' => 'required',
+            'name'        => 'required',
+            'price'       => 'required|numeric'
+        ])) {
+            return redirect()->back()->withInput()->with('error', 'Please fill all required fields.');
+        }
+
+        $productModel = new \App\Models\ProductModel();
+        
+        // 2. File Upload Handling with DEBUGGING
+        $file = $this->request->getFile('image');
+        $imageName = ''; // Default to empty string if no image
+
+        // Check if a file was uploaded
+        if ($file && $file->getName() !== '') {
+            // Check if the upload failed (e.g., file too large, server config issue)
+            if (!$file->isValid()) {
+                return redirect()->back()->withInput()->with('error', 'Image Upload Failed: ' . $file->getErrorString());
+            }
+
+            // If valid, rename and move it
+            if (!$file->hasMoved()) {
+                $imageName = $file->getRandomName();
+                // FCPATH points to the 'public' folder. 
+                $file->move(FCPATH . 'uploads/products', $imageName);
+            }
+        }
+
+        // 3. Save Data to Database
+        $data = [
+            'vendor_id'   => session()->get('user_id'),
+            'category_id' => $this->request->getPost('category_id'),
+            'name'        => $this->request->getPost('name'),
+            'price'       => $this->request->getPost('price'),
+            'offer_price' => $this->request->getPost('offer_price'),
+            'stock'       => $this->request->getPost('stock'),
+            'image'       => $imageName,
+            'status'      => 1
+        ];
+
+        $productModel->insert($data);
+        return redirect()->to('/vendor/products')->with('success', 'Product published successfully!');
+    }
+    
     public function deleteProduct($id)
     {
         $productModel = new ProductModel();
@@ -174,7 +272,7 @@ class VendorController extends BaseController
         
         return redirect()->back()->with('error', 'Unauthorized action.');
     }
-    
+
     // --- AJAX PRODUCT SEARCH ---
     public function searchProductsAjax()
     {

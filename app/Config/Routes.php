@@ -33,8 +33,8 @@ $routes->group('admin', ['filter' => 'role:admin'], static function ($routes) {
     $routes->get('products', 'AdminController::products');
     $routes->get('orders', 'AdminController::orders');
 
-    $routes->post('admin/categories/update/(:num)', 'AdminController::updateCategory/$1');
-    $routes->post('admin/products/toggle-status/(:num)', 'AdminController::toggleProductStatus/$1');
+    $routes->post('categories/update/(:num)', 'AdminController::updateCategory/$1');
+    $routes->post('products/toggle-status/(:num)', 'AdminController::toggleProductStatus/$1');
 });
 // Vendor Protected Routes
 $routes->group('vendor', ['filter' => 'role:vendor'], static function ($routes) {
@@ -46,7 +46,13 @@ $routes->group('vendor', ['filter' => 'role:vendor'], static function ($routes) 
     
     // Product Management
     $routes->get('products', 'VendorController::products');
-    $routes->match(['get', 'post'], 'products/add', 'VendorController::addProduct');
+    
+    // ---------------------------------------------------------
+    // THE FIX: Split GET (view the form) and POST (save the data)
+    $routes->get('products/add', 'VendorController::addProduct'); 
+    $routes->post('products/add', 'VendorController::storeProduct'); 
+    // ---------------------------------------------------------
+    
     $routes->match(['get', 'post'], 'products/edit/(:num)', 'VendorController::editProduct/$1');
     $routes->get('products/delete/(:num)', 'VendorController::deleteProduct/$1');
     

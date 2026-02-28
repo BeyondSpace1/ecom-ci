@@ -8,7 +8,7 @@ class OrderItemModel extends Model
 {
     protected $table            = 'order_items';
     protected $primaryKey       = 'id';
-    protected $allowedFields    = ['order_id', 'product_id', 'vendor_id', 'price', 'quantity'];
+    protected $allowedFields    = ['order_id', 'product_id', 'vendor_id', 'price', 'quantity','status'];
     protected $useAutoIncrement = true;
     protected $returnType       = 'array';
     protected $useSoftDeletes   = false;

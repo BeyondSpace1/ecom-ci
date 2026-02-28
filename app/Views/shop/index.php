@@ -121,6 +121,65 @@
             const csrfName = '<?= csrf_token() ?>';
             const csrfHash = '<?= csrf_hash() ?>';
 
+                // --- ADD TO CART AJAX HANDLER ---
+            // We attach this to the document to catch forms even after filtering categories
+            document.addEventListener('submit', function(e) {
+                // Check if the form being submitted is an Add to Cart form
+                if (e.target && e.target.getAttribute('action') === '/cart/add') {
+                    e.preventDefault(); // Stop the browser from navigating to the JSON page!
+
+                    const form = e.target;
+                    const formData = new FormData(form);
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    const originalText = submitBtn.innerText;
+
+                    // Temporary visual feedback
+                    submitBtn.innerText = 'Adding...';
+                    submitBtn.disabled = true;
+
+                    fetch('/cart/add', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest' // Tell CI4 this is an AJAX request
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            // Find the cart button in the navbar
+                            const cartLink = document.querySelector('a[href="/cart"]');
+                            let badge = cartLink.querySelector('.badge');
+                            
+                            // If the badge doesn't exist yet (cart was empty), create it
+                            if (!badge) {
+                                badge = document.createElement('span');
+                                badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                                cartLink.appendChild(badge);
+                            }
+                            
+                            // Update the number inside the badge
+                            badge.innerText = data.cart_count;
+
+                            // Restore button state
+                            submitBtn.innerText = 'Added! ✓';
+                            submitBtn.classList.replace('btn-primary', 'btn-success');
+                            
+                            setTimeout(() => {
+                                submitBtn.innerText = originalText;
+                                submitBtn.classList.replace('btn-success', 'btn-primary');
+                                submitBtn.disabled = false;
+                            }, 1500);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error adding to cart:', error);
+                        submitBtn.innerText = 'Error';
+                        submitBtn.disabled = false;
+                    });
+                }
+            }); 
+
             filterBtns.forEach(btn => {
                 btn.addEventListener('click', function() {
                     // Update active state

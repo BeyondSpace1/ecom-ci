@@ -27,9 +27,12 @@ class ShopController extends BaseController
 
         return view('shop/index', $data);
     }
-
+    
     public function filterProducts($categoryId = 'all')
     {
+        // Sometimes JS sends the ID via GET/POST instead of the URL segment
+        $requestedId = $this->request->getVar('category_id') ?? $categoryId;
+
         $productModel = new \App\Models\ProductModel();
         
         $query = $productModel->select('products.*, vendors.store_name')
@@ -38,8 +41,9 @@ class ShopController extends BaseController
             ->where('products.status', 1)
             ->where('products.stock >', 0);
 
-        if ($categoryId !== 'all') {
-            $query->where('products.category_id', $categoryId);
+        // If it's a specific number, apply the filter!
+        if ($requestedId !== 'all' && is_numeric($requestedId)) {
+            $query->where('products.category_id', $requestedId);
         }
 
         return $this->response->setJSON($query->findAll());
