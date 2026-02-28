@@ -26,11 +26,22 @@
                         </span>
                     <?php endif; ?>
                 </a>
-                <?php if(session()->get('isLoggedIn')): ?>
-                    <a href="/login" class="btn btn-primary">Dashboard</a>
-                <?php else: ?>
-                    <a href="/login" class="btn btn-primary">Login</a>
-                <?php endif; ?>
+                <div class="d-flex gap-2">
+                    <?php if(session()->get('isLoggedIn')): ?>
+                        <?php 
+                            $dashboardLink = '/';
+                            if(session()->get('role') == 'admin') $dashboardLink = '/admin/dashboard';
+                            if(session()->get('role') == 'vendor') $dashboardLink = '/vendor/dashboard';
+                        ?>
+                        <?php if(session()->get('role') !== 'customer'): ?>
+                            <a href="<?= $dashboardLink ?>" class="btn btn-primary">Dashboard</a>
+                        <?php endif; ?>
+                        
+                        <a href="/logout" class="btn btn-outline-danger">Logout</a>
+                    <?php else: ?>
+                        <a href="/login" class="btn btn-primary">Login</a>
+                    <?php endif; ?>
+                </div>
             </div>
         </div>
     </nav>

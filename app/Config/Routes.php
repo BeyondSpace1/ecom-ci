@@ -56,8 +56,8 @@ $routes->group('vendor', ['filter' => 'role:vendor'], static function ($routes) 
     // Orders
     $routes->get('orders', 'VendorController::orders');
 
-    $routes->post('vendor/products/toggle-status/(:num)', 'VendorController::toggleProductStatus/$1');
-    $routes->post('vendor/orders/update-status/(:num)', 'VendorController::updateOrderStatus/$1');
+    $routes->post('products/toggle-status/(:num)', 'VendorController::toggleProductStatus/$1');
+    $routes->post('orders/update-status/(:num)', 'VendorController::updateOrderStatus/$1');
 });
 // Public Shop & AJAX Routes
 $routes->get('/', 'ShopController::index');

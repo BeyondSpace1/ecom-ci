@@ -28,22 +28,21 @@ class ShopController extends BaseController
         return view('shop/index', $data);
     }
 
-    public function filterProducts()
+    public function filterProducts($categoryId = 'all')
     {
-        $categoryId = $this->request->getGet('category_id');
-        $productModel = new ProductModel();
-
-        $query = $productModel->where('status', 1)->where('stock >', 0);
+        $productModel = new \App\Models\ProductModel();
         
-        // If a specific category is selected (not "All")
-        if (!empty($categoryId) && $categoryId !== 'all') {
-            $query->where('category_id', $categoryId);
+        $query = $productModel->select('products.*, vendors.store_name')
+            ->join('vendors', 'vendors.user_id = products.vendor_id')
+            ->where('vendors.approval_status', 'approved')
+            ->where('products.status', 1)
+            ->where('products.stock >', 0);
+
+        if ($categoryId !== 'all') {
+            $query->where('products.category_id', $categoryId);
         }
 
-        $products = $query->findAll();
-        
-        // Return strictly formatted JSON for the AJAX frontend
-        return $this->response->setJSON($products);
+        return $this->response->setJSON($query->findAll());
     }
 
     // --- SESSION CART MANAGEMENT ---
@@ -99,7 +98,11 @@ class ShopController extends BaseController
         }
 
         $session->set('cart', $cart);
-        return redirect()->back()->with('success', 'Item added to cart.');
+        return $this->response->setJSON([
+            'status' => 'success',
+            'message' => 'Item added to cart',
+            'cart_count' => count($cart) 
+        ]);
     }
 
     public function updateCart()
