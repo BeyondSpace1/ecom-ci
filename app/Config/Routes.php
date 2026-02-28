@@ -75,3 +75,4 @@ $routes->group('checkout', ['filter' => 'role:customer'], static function ($rout
     $routes->post('process', 'Checkout::processCheckout'); // We wrote this in step 1!
     $routes->get('success', 'ShopController::success');
 });
+
