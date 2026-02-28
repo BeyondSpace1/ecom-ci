@@ -1,41 +1,53 @@
 <?= $this->extend('admin/layout') ?>
 
 <?= $this->section('content') ?>
-<div class="row mb-4">
-    <div class="col-md-8">
-        <h2 class="fw-bold">Manage Categories</h2>
-    </div>
-    <div class="col-md-4 text-end">
-        <form action="/admin/categories/add" method="post" class="d-flex gap-2">
-            <?= csrf_field() ?>
-            <input type="text" name="name" class="form-control" placeholder="New Category Name" required>
-            <button type="submit" class="btn btn-primary shadow-sm">Add</button>
-        </form>
-    </div>
-</div>
+<h2 class="fw-bold mb-4">Vendor Management</h2>
 
 <div class="card shadow-sm border-0">
     <div class="card-body p-0">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Category Name</th>
+                    <th>Store Name</th>
+                    <th>Owner Name</th>
+                    <th>Email</th>
                     <th>Status</th>
+                    <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach($categories as $cat): ?>
+                <?php foreach($vendors as $vendor): ?>
                 <tr>
-                    <td><?= $cat['id'] ?></td>
-                    <td class="fw-bold"><?= esc($cat['name']) ?></td>
+                    <td class="fw-bold"><?= esc($vendor['store_name']) ?></td>
+                    <td><?= esc($vendor['name']) ?></td>
+                    <td><?= esc($vendor['email']) ?></td>
                     <td>
-                        <?= $cat['status'] == 1 ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-danger">Inactive</span>' ?>
+                        <?php if($vendor['approval_status'] === 'approved'): ?>
+                            <span class="badge bg-success">Approved</span>
+                        <?php elseif($vendor['approval_status'] === 'pending'): ?>
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        <?php else: ?>
+                            <span class="badge bg-danger">Rejected</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="text-end">
+                        <form action="/admin/vendors/approve/<?= $vendor['user_id'] ?>" method="post" class="d-inline">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm <?= $vendor['approval_status'] === 'approved' ? 'btn-success' : 'btn-outline-success' ?> shadow-sm">
+                                Approve
+                            </button>
+                        </form>
+                        <form action="/admin/vendors/reject/<?= $vendor['user_id'] ?>" method="post" class="d-inline">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm <?= $vendor['approval_status'] === 'rejected' ? 'btn-danger' : 'btn-outline-danger' ?> shadow-sm">
+                                Reject
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 <?php endforeach; ?>
-                <?php if(empty($categories)): ?>
-                    <tr><td colspan="3" class="text-center py-4 text-muted">No categories found.</td></tr>
+                <?php if(empty($vendors)): ?>
+                    <tr><td colspan="5" class="text-center py-4 text-muted">No vendors registered yet.</td></tr>
                 <?php endif; ?>
             </tbody>
         </table>

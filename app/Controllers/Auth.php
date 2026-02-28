@@ -11,11 +11,23 @@ class Auth extends BaseController
 {
     public function login()
     {
+        // Check if user is already logged in
+        if (session()->get('isLoggedIn')) {
+            return $this->redirectUserByRole(session()->get('role'));
+        }
+
         helper(['form']);
         return view('auth/login');
     }
 
-    public function loginAuth() 
+    private function redirectUserByRole($role)
+    {
+        if ($role === 'admin') return redirect()->to('/admin/dashboard');
+        if ($role === 'vendor') return redirect()->to('/vendor/dashboard');
+        return redirect()->to('/'); // Customers go to homepage
+    }
+
+    public function loginAuth()
     {
         $session = session();
         $userModel = new UserModel();
@@ -26,13 +38,11 @@ class Auth extends BaseController
         $user = $userModel->where('email', $email)->first();
 
         if ($user) {
-            // Check if user is active
             if ($user['status'] == 0) {
                 $session->setFlashdata('error', 'Your account is deactivated.');
                 return redirect()->to('/login');
             }
 
-            // Verify Password
             if (password_verify($password, $user['password'])) {
                 $ses_data = [
                     'user_id'    => $user['id'],
@@ -43,10 +53,7 @@ class Auth extends BaseController
                 ];
                 $session->set($ses_data);
 
-                // Redirect based on role
-                if ($user['role'] === 'admin') return redirect()->to('/admin/dashboard');
-                if ($user['role'] === 'vendor') return redirect()->to('/vendor/dashboard');
-                return redirect()->to('/'); // Customer goes to homepage
+                return $this->redirectUserByRole($user['role']);
             } else {
                 $session->setFlashdata('error', 'Invalid Password.');
                 return redirect()->to('/login');
@@ -67,7 +74,6 @@ class Auth extends BaseController
     {
         helper(['form']);
         
-        // Validation Rules
         $rules = [
             'name'     => 'required|min_length[3]|max_length[100]',
             'email'    => 'required|min_length[6]|max_length[100]|valid_email|is_unique[users.email]',
@@ -79,23 +85,22 @@ class Auth extends BaseController
             $userModel = new UserModel();
             
             $userData = [
-                'name'     => $this->request->getVar('name'),
-                'email'    => $this->request->getVar('email'),
-                'password' => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
-                'role'     => $this->request->getVar('role'),
-                'status'   => 1,
+                'name'      => $this->request->getVar('name'),
+                'email'     => $this->request->getVar('email'),
+                'password'  => password_hash($this->request->getVar('password'), PASSWORD_DEFAULT),
+                'role'      => $this->request->getVar('role'),
+                'status'    => 1,
                 'created_at'=> date('Y-m-d H:i:s')
             ];
 
             $userModel->insert($userData);
             $userId = $userModel->getInsertID();
 
-            // If they registered as a vendor, create their pending vendor profile
             if ($this->request->getVar('role') === 'vendor') {
                 $vendorModel = new VendorModel();
                 $vendorModel->insert([
                     'user_id'         => $userId,
-                    'store_name'      => $this->request->getVar('name') . ' Store', // Default store name
+                    'store_name'      => $this->request->getVar('name') . ' Store',
                     'approval_status' => 'pending'
                 ]);
             }

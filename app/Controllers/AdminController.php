@@ -61,8 +61,9 @@ class AdminController extends BaseController
     // --- USER MANAGEMENT ---
     public function users()
     {
-        $userModel = new UserModel();
-        $data['users'] = $userModel->where('role !=', 'admin')->findAll();
+        $userModel = new \App\Models\UserModel();
+        // Only fetch users who have the 'customer' role
+        $data['users'] = $userModel->where('role', 'customer')->findAll();
         return view('admin/users', $data);
     }
 
@@ -99,6 +100,20 @@ class AdminController extends BaseController
         return redirect()->back()->with('error', 'Category name is required.');
     }
 
+    public function updateCategory($id)
+    {
+        $categoryModel = new \App\Models\CategoryModel();
+        
+        $data = [
+            'name'   => $this->request->getPost('name'),
+            'status' => $this->request->getPost('status')
+        ];
+
+        if ($categoryModel->update($id, $data)) {
+            return redirect()->back()->with('success', 'Category updated successfully.');
+        }
+        return redirect()->back()->with('error', 'Failed to update category.');
+    }
     // --- VIEW ONLY DATA ---
     public function products()
     {
@@ -110,6 +125,20 @@ class AdminController extends BaseController
         return view('admin/products', $data);
     }
 
+    public function toggleProductStatus($id)
+    {
+        $productModel = new \App\Models\ProductModel();
+        $product = $productModel->find($id);
+        
+        if ($product) {
+            $newStatus = ($product['status'] == 1) ? 0 : 1;
+            $productModel->update($id, ['status' => $newStatus]);
+            $msg = $newStatus == 1 ? 'Product enabled.' : 'Product disabled by Admin.';
+            return redirect()->back()->with('success', $msg);
+        }
+        return redirect()->back()->with('error', 'Product not found.');
+    }
+    
     public function orders()
     {
         $orderModel = new OrderModel();

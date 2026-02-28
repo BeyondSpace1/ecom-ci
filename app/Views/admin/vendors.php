@@ -31,18 +31,18 @@
                         <?php endif; ?>
                     </td>
                     <td class="text-end">
-                        <?php if($vendor['approval_status'] === 'pending'): ?>
-                            <form action="/admin/vendors/approve/<?= $vendor['user_id'] ?>" method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-sm btn-success shadow-sm">Approve</button>
-                            </form>
-                            <form action="/admin/vendors/reject/<?= $vendor['user_id'] ?>" method="post" class="d-inline">
-                                <?= csrf_field() ?>
-                                <button type="submit" class="btn btn-sm btn-danger shadow-sm">Reject</button>
-                            </form>
-                        <?php else: ?>
-                            <span class="text-muted fst-italic">Reviewed</span>
-                        <?php endif; ?>
+                        <form action="/admin/vendors/approve/<?= $vendor['user_id'] ?>" method="post" class="d-inline">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm <?= $vendor['approval_status'] === 'approved' ? 'btn-success' : 'btn-outline-success' ?> shadow-sm">
+                                Approve
+                            </button>
+                        </form>
+                        <form action="/admin/vendors/reject/<?= $vendor['user_id'] ?>" method="post" class="d-inline">
+                            <?= csrf_field() ?>
+                            <button type="submit" class="btn btn-sm <?= $vendor['approval_status'] === 'rejected' ? 'btn-danger' : 'btn-outline-danger' ?> shadow-sm">
+                                Reject
+                            </button>
+                        </form>
                     </td>
                 </tr>
                 <?php endforeach; ?>

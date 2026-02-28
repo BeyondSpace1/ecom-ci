@@ -145,6 +145,36 @@ class VendorController extends BaseController
         return redirect()->back()->with('error', 'Product not found or access denied.');
     }
 
+    public function toggleProductStatus($id)
+    {
+        $productModel = new \App\Models\ProductModel();
+        // Ensure the vendor owns the product (Security)
+        $product = $productModel->where('vendor_id', session()->get('user_id'))->find($id);
+
+        if ($product) {
+            $newStatus = ($product['status'] == 1) ? 0 : 1;
+            $productModel->update($id, ['status' => $newStatus]);
+            return redirect()->back()->with('success', 'Product visibility updated.');
+        }
+        return redirect()->back()->with('error', 'Unauthorized action.');
+    }
+
+    public function updateOrderStatus($itemId)
+    {
+        $orderItemModel = new \App\Models\OrderItemModel();
+        
+        // Strict Isolation: Ensure the vendor owns this specific order item
+        $item = $orderItemModel->where('vendor_id', session()->get('user_id'))->find($itemId);
+
+        if ($item) {
+            $status = $this->request->getPost('status');
+            $orderItemModel->update($itemId, ['status' => $status]);
+            return redirect()->back()->with('success', 'Order status updated to ' . ucfirst($status));
+        }
+        
+        return redirect()->back()->with('error', 'Unauthorized action.');
+    }
+    
     // --- AJAX PRODUCT SEARCH ---
     public function searchProductsAjax()
     {

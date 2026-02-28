@@ -14,6 +14,7 @@
                         <th>Category</th>
                         <th>Price</th>
                         <th>Stock</th>
+                        <th class="text-end pe-4">Status / Action</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -30,10 +31,18 @@
                                 <span class="text-danger fw-bold">Out of Stock</span>
                             <?php endif; ?>
                         </td>
+                        <td class="text-end pe-4">
+                            <form action="/admin/products/toggle-status/<?= $product['id'] ?>" method="post">
+                                <?= csrf_field() ?>
+                                <button type="submit" class="btn btn-sm <?= $product['status'] == 1 ? 'btn-danger' : 'btn-success' ?> shadow-sm">
+                                    <?= $product['status'] == 1 ? 'Disable' : 'Enable' ?>
+                                </button>
+                            </form>
+                        </td>
                     </tr>
                     <?php endforeach; ?>
                     <?php if(empty($products)): ?>
-                        <tr><td colspan="5" class="text-center py-4 text-muted">No products listed by vendors yet.</td></tr>
+                        <tr><td colspan="6" class="text-center py-4 text-muted">No products listed by vendors yet.</td></tr>
                     <?php endif; ?>
                 </tbody>
             </table>

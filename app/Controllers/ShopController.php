@@ -16,10 +16,14 @@ class ShopController extends BaseController
         $categoryModel = new CategoryModel();
 
         $data['categories'] = $categoryModel->where('status', 1)->findAll();
-        // Only show active products that are in stock
-        $data['products'] = $productModel->where('status', 1)
-                                         ->where('stock >', 0)
-                                         ->findAll();
+        
+        // JOIN vendors to verify approval_status
+        $data['products'] = $productModel->select('products.*, vendors.store_name')
+            ->join('vendors', 'vendors.user_id = products.vendor_id')
+            ->where('vendors.approval_status', 'approved') // Only show approved vendors' products
+            ->where('products.status', 1) // Only show active products
+            ->where('products.stock >', 0) // Only show in-stock products
+            ->findAll();
 
         return view('shop/index', $data);
     }
